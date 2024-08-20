@@ -1,6 +1,14 @@
-## Laravel - Projetos
+# Laravel - Projetos
 
-Para executar cada projeto, após o download execute:
+## Justificativa deste projeto
+
+Porque sobre laravel?
+
+Pra começar é o assunto que mais tenho estudado nos últimos tempos. O laravel não é apenas um framework em PHP. Basta olhar que o PHP é uma linguagem ainda muto popular pelos seus feitos mas bem impopular entre programadores de outras linguagens. Mas mesmo assim o laravel tem penetração entre estes. Sem contar que é um verdadeiro canivete suiço. Suas facilidades, somadas com as do PHP são muito importantes.
+
+Só para dar uma ideia da sua versatilidade aqui, entre os projetos citados, está um que criei há uns 15 dias para servir de diário para mim. Ele substituiu um que usei por uns 5 anos feito no LibreOffice Writer. Tem mais vários aplicativos úteis, boa parte criada por mim, mas não somente.
+
+## Para executar cada projeto, após o download execute:
 
 composer install
 
