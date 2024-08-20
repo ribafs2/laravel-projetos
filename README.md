@@ -80,3 +80,6 @@ Verifique o arquivo de rotas se em dúvida
 
 4 – Referências
 ```
+## Scripts
+Na pasta Scripts encontrará vários aliases e scripts que uso para tornar minhas atividades mais produtivas
+
