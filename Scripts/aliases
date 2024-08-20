@@ -1,0 +1,40 @@
+# Meus aliases
+alias c="clear"
+# Mostrar maiores arquivos do diretório atual
+alias maiores='du -cks * | sort -rn | head'
+# Abrir o .bashrc de qualquer pasta
+alias rc="nano /home/ribafs/.bashrc"
+# Executar o source após alterações
+alias rcs="source /home/ribafs/.bashrc"
+# Instalar pacote
+alias apti="sudo update;sudo upgrade -y;sudo apt install -y"
+# Remover pacote
+alias aptr="sudo apt remove --purge -y"
+# Pesquisar pacotes com aptitude
+alias apts="sudo aptitude search"
+# Restartar apache
+alias apr="sudo service apache2 restart"
+# Alterar o php.ini e já restartar o apache
+alias phpi="sudo nano /etc/php/8.2/apache2/php.ini;apr"
+# Atualizar repositórios e pacotes
+alias up="sudo apt update;sudo apt upgrade -y"
+alias ni="npm install;npm run build"
+alias ci="composer install"
+# Criar aplicativo com laravel 11
+alias l11="composer create-project --prefer-dist laravel/laravel"
+# Criar aplicativo com laravel 10
+alias l10="composer create-project --prefer-dist laravel/laravel:^10.0"
+# Criar aplicativo com laravel 9
+alias l9="composer create-project --prefer-dist laravel/laravel:^9.0"
+alias as="php artisan serve"
+alias am="php artisan migrate"
+alias ams="php artisan migrate:fresh --seed"
+alias ak="php artisan key:generate --ansi"
+alias a="php artisan"
+alias ce="cp .env.example .env"
+alias lc="php artisan cache:composer du;clear;php artisan config:cache;php artisan route:cache;php artisan optimize"
+alias ne="nano .env"
+alias lr="mysql -uroot -e 'drop database laravel';mysql -uroot -e 'create database laravel';echo database laravel recreated;"
+alias p="php -S localhost:8000"
+alias rclear="php artisan route:clear"
+
