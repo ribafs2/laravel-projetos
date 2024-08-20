@@ -1,0 +1,39 @@
+Esta é a versão original do tutorial do devmedia
+
+https://www.devmedia.com.br/implementando-controle-de-estoque-no-mysql-com-triggers-e-procedures/26352
+
+Apenas copiei e criei os arquivos.
+
+E está rodando sem problemas.
+
+- Criei o banco, importei o script das tabelas e também os scripts da stored procedure e os das triggers
+- Cadastrei um produto:
+    descricao - Banana maçã
+    estoque_minimo - 3
+    estoque_maximo - 150
+
+Cadastrei uma compra:
+    produto_id - 1
+    quantidade - 50
+    valor_unitario - 5
+    data - 2021-06-16
+
+Após cadastrar a compra podemos ver que ela foi automaticamente cadastrada no estoque
+    produto_id - 1
+    quantidade - 50
+    valor_unitario - 5
+
+Agora vamos efetuar uma venda e ver como fica o estoque
+    produto_id - 1
+    quantidade - 30
+    data - 2021-06-16
+    valor_unitario - 6
+
+Vejamos o estoque, que deve ter sido reduzido de 50 para 20
+    produto_id - 1
+    quantidade - 20
+    valor_unitario - 6
+    
+Beleza. Ele está cadastrando a compra e deduzindo a venda
+
+

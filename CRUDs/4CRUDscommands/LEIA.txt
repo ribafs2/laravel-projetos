@@ -1,0 +1,32 @@
+CRUD generator - Laravel 8, 9, 10, 11
+
+Testado nas versões 8, 9, 10 e 11
+Em Wiindows 11 com Xampp e WSL2 e no Linux Debian 12
+
+Criar aplicativo em laravel
+
+composer create-project laravel/laravel crud
+cd crud
+
+Copiar a pasta Commands para app/Console
+E executar:
+
+php artisan crud:create products string#name,decimal#price
+
+Ajustar a migration e o controller, caso queira e voltar para criar o CRUD.
+
+Ajustar o banco no .env
+
+Lembre que é coerente verificar o CreateSeeder antes de executar o comando abaixo para alguns ajustes, se for o caso.
+
+AVISO: Fique atento aos tipos de dados dos campos, pois o command para o seeder tem limitações. Quando usar algum tipo que não esteja no switch precisará adicionar para que funcione. Aqui tem a relação de tipos de dados suportados pelo laravel 11 e que podem ser adaptados para uso com o fakerPHP:
+
+https://laravel.com/docs/11.x/migrations#available-column-types
+https://fakerphp.github.io/
+
+php artisan migrate --seed
+
+php artisan serve
+
+http://127.0.0.1:8000
+

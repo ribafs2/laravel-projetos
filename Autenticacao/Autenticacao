@@ -1,0 +1,80 @@
+Autenticação
+
+Muitos aplicativos da web fornecem uma maneira para seus usuários autenticarem com o aplicativo e "fazerem login". Implementar esse recurso em aplicativos da web pode ser um empreendimento complexo e potencialmente arriscado. Por esse motivo, o Laravel se esforça para fornecer as ferramentas necessárias para implementar a autenticação de forma rápida, segura e fácil.
+
+Em seu núcleo, os recursos de autenticação do Laravel são compostos de "guards" e "providers". Os guardas definem como os usuários são autenticados para cada solicitação. Por exemplo, o Laravel vem com um guard de sessão que mantém o estado usando armazenamento de sessão e cookies.
+
+Os providers/provedores definem como os usuários são recuperados do seu armazenamento persistente. O Laravel vem com suporte para recuperar usuários usando o Eloquent e o query builder/construtor de consultas de banco de dados. No entanto, você é livre para definir provedores adicionais conforme necessário para seu aplicativo.
+
+O arquivo de configuração de autenticação do seu aplicativo está localizado em config/auth.php. Este arquivo contém várias opções bem documentadas para ajustar o comportamento dos serviços de autenticação do Laravel.
+
+Guards e provedores não devem ser confundidos com "roles/funções" e "permissões". Para saber mais sobre como autorizar ações do usuário por meio de permissões, consulte a documentação de autorização.
+
+Starter Kits
+
+Quer começar rápido? Instale um starter kit de aplicativo Laravel em um novo aplicativo Laravel. Após migrar seu banco de dados, navegue em seu navegador para /register ou qualquer outra URL que esteja atribuída ao seu aplicativo. Os starter kits cuidarão de todo o seu sistema de autenticação!
+
+Mesmo se você optar por não usar um starter kit em seu aplicativo Laravel final, instalar o starter kit Laravel Breeze pode ser uma oportunidade maravilhosa para aprender como implementar todas as funcionalidades de autenticação do Laravel em um projeto Laravel real. Como o Laravel Breeze cria controladores de autenticação, rotas e visualizações para você, você pode examinar o código dentro desses arquivos para aprender como os recursos de autenticação do Laravel podem ser implementados.
+
+Considerações sobre bancos de dados
+
+Ao construir o esquema do banco de dados para o modelo App\Models\User, certifique-se de que a coluna password tenha pelo menos 60 caracteres de comprimento. Claro, a migração da tabela users que está incluída em novos aplicativos Laravel já cria uma coluna que excede esse comprimento.
+
+Além disso, você deve verificar se sua tabela users (ou equivalente) contém uma coluna string remember_token nullable de 100 caracteres. Esta coluna será usada para armazenar um token para usuários que selecionarem a opção "lembrar de mim" ao efetuar login em seu aplicativo. Novamente, a migração padrão da tabela users que está incluída em novos aplicativos Laravel já contém esta coluna.
+
+Visão geral do ecossistema
+
+O Laravel oferece vários pacotes relacionados à autenticação. Antes de continuar, revisaremos o ecossistema geral de autenticação no Laravel e discutiremos a finalidade pretendida de cada pacote.
+
+Primeiro, considere como a autenticação funciona. Ao usar um navegador da web, um usuário fornecerá seu nome de usuário e senha por meio de um formulário de login. Se essas credenciais estiverem corretas, o aplicativo armazenará informações sobre o usuário autenticado na sessão do usuário. Um cookie emitido para o navegador contém o ID da sessão para que solicitações subsequentes ao aplicativo possam associar o usuário à sessão correta. Após o cookie da sessão ser recebido, o aplicativo recuperará os dados da sessão com base no ID da sessão, observe que as informações de autenticação foram armazenadas na sessão e considerará o usuário como "autenticado".
+
+Quando um serviço remoto precisa se autenticar para acessar uma API, os cookies normalmente não são usados ​​para autenticação porque não há um navegador da web. Em vez disso, o serviço remoto envia um token de API para a API em cada solicitação. O aplicativo pode validar o token de entrada em uma tabela de tokens de API válidos e "autenticar" a solicitação como sendo realizada pelo usuário associado a esse token de API.
+
+Pacotes de autenticação
+- Laravel Breeze - https://laravel.com/docs/11.x/starter-kits#laravel-breeze
+- Laravel Jetstream - https://laravel.com/docs/11.x/starter-kits#laravel-jetstream
+- Laravel Fortify - https://laravel.com/docs/11.x/fortify
+- Laravel UI - https://github.com/laravel/ui
+
+O Laravel Breeze é uma implementação simples e mínima de todos os recursos de autenticação do Laravel, incluindo login, registro, redefinição de senha, verificação de e-mail e confirmação de senha. A camada de visualização do Laravel Breeze é composta de modelos Blade simples estilizados com Tailwind CSS. Para começar, confira a documentação sobre os kits iniciais de aplicativos do Laravel.
+
+O Laravel Fortify é um backend de autenticação headless para o Laravel que implementa muitos dos recursos encontrados nesta documentação, incluindo autenticação baseada em cookie, bem como outros recursos como autenticação de dois fatores e verificação de e-mail. O Fortify fornece o backend de autenticação para o Laravel Jetstream ou pode ser usado independentemente em combinação com o Laravel Sanctum para fornecer autenticação para um SPA que precisa autenticar com o Laravel.
+
+O Laravel Jetstream é um robusto kit inicial de aplicativo que consome e expõe os serviços de autenticação do Laravel Fortify com uma UI bonita e moderna, alimentada por Tailwind CSS, Livewire e/ou Inertia. O Laravel Jetstream inclui suporte opcional para autenticação de dois fatores, suporte de equipe, gerenciamento de sessão do navegador, gerenciamento de perfil e integração interna com o Laravel Sanctum para oferecer autenticação de token de API. As ofertas de autenticação de API do Laravel são discutidas abaixo.
+
+Laravel UI - Embora o Laravel não dite quais pré-processadores JavaScript ou CSS você usa, ele fornece um ponto de partida básico usando Bootstrap, React e/ou Vue que será útil para muitos aplicativos. Por padrão, o Laravel usa o NPM para instalar ambos os pacotes de frontend.
+
+Este pacote legado é um scaffolding de autenticação muito simples construído na estrutura CSS do Bootstrap. Embora ele continue a funcionar com a versão mais recente do Laravel, você deve considerar usar o Laravel Breeze para novos projetos. Ou, para algo mais robusto, considere o Laravel Jetstream.
+
+Recuperando o usuário autenticado
+
+use Illuminate\Support\Facades\Auth;
+ 
+// Retrieve the currently authenticated user...
+$user = Auth::user();
+ 
+// Retrieve the currently authenticated user's ID...
+$id = Auth::id();
+
+Redirecionando usuários não autenticados
+
+use Illuminate\Http\Request;
+ 
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->redirectGuestsTo('/login');
+ 
+    // Using a closure...
+    $middleware->redirectGuestsTo(fn (Request $request) => route('login'));
+})
+
+Roteiro prático
+
+Instalar laravel 11
+
+Configurações
+
+Veja os Exemplos de autenticação:
+- breeze
+- laravel/ui
+- jetstream
+

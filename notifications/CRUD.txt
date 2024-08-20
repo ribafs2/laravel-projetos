@@ -1,0 +1,13 @@
+composer require ribafs/crud-generator --dev
+
+php artisan vendor:publish --provider="Ribafs\CrudGenerator\CrudGeneratorServiceProvider"
+
+php artisan crud:generate Diarios --fields='dia#date; texto#text;' --controller-namespace=App\\Http\\Controllers --form-helper=html
+
+php artisan route:clear
+
+php artisan migrate
+
+php artisan serve
+
+http://127.0.0.1:8000

@@ -1,0 +1,31 @@
+Biblioteca de programação
+
+Pra criar este aplicativo, que teria duas tabelas relacionadas, categories e contents, eu pensei em duas opções:
+laravel com o gerador
+CakePHP com bake
+
+Criei com Cake e bake e criei com laravel e o gerador. Laravel saiu ganhando. Se fossem várias tabelas relacionadas seria mais produtivo usar o Cake com bake
+
+Por conta da segurança criarei tudo localmente e publicarei apenas as views index e show
+
+Serã apenas um único CRUD para cada assunto
+
+Laravel
+Joomla
+PHP
+MySQL
+DevOps
+Linux
+Outros
+
+categories
+	id
+	name
+	
+content
+	id
+	category_id
+	title
+	content
+	date
+	

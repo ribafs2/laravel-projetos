@@ -1,0 +1,21 @@
+Criar um aplicativo em Laravel 11
+Usar o gerador de CRUDs 
+https://github.com/ribafs2/gerador-cruds
+
+Para gerar o CRUD diarios
+id, dia, texto
+
+Ao abrir já deve abrir na view diarios.index
+
+Adicionar o editor CKEditor para o campo textarea nas views create e edit.
+O campo texto deve ter como valor default o dia de hoje e ser único
+View index mostrar somente dia
+
+Criar script de backup para arquivos e banco
+Usar o crontab para executar o script diariamente as 12 horas
+
+Alias, como deu trabalho encurtar o tamanho do campo texto, adicionei dia para evitar mostrar texto
+
+Ao final criar uma combinação de teclas para abrir o aplicativo no firefox, alias, apenas alterar a combinação atual que, ao invés de abrir o diário atual no LibreOffice irá abrir o aplicativo no firefox.
+
+

@@ -1,0 +1,27 @@
+composer require ribafs/crud-generator --dev
+
+php artisan vendor:publish --provider="Ribafs\CrudGenerator\CrudGeneratorServiceProvider"
+
+Como ele cria uma combo estática na view, não há necessidade da tabela categories
+
+Criar um CRUD para cada:
+Laravel, CakePHP, Joomla, PHP, MySQL, DevOps, Linux, Outros
+
+php artisan crud:generate Laravel --fields='title#string; category#select#options={"": "Select","tips": "Tips", "tutorials": "Tutorials", "links": "Links", "videos": "Videos"};content#text;date#date' --view-path= --controller-namespace=App\\Http\\Controllers --form-helper=html
+
+ou
+
+php artisan crud:generate Libs --fields='title#string; subject#select#options={"": "Select","laravel": "Laravel", "cakephp": "CakePHP", "joomla": "Joomla", "wp": "Wordpress", "php": "PHP", "frontend": "Front-end", "mysql": "MySQL", "devops": "DevOps", "linux": "Linux", "outro": "Outro"};category#select#options={"": "Select","tips": "Tips", "tutorials": "Tutorials", "links": "Links", "videos": "Videos"};content#text;date#date' --view-path= --controller-namespace=App\\Http\\Controllers --form-helper=html
+
+ou
+
+
+Route::resource('/libs', 'App\Http\Controllers\LibsController');
+
+Executar
+php artisan route:clear
+
+php artisan migrate
+
+php artisan serve
+

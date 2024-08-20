@@ -1,0 +1,60 @@
+Criar um CRUD com laravel 11, partindo do início e mostrando cada etapa/componente
+
+Aqui estaremos fazendo uma engenharia reversa. Criarei um CRUD completo e com  bons recursos usando um gerador e também consultarei mais algum outro CRUD. Então deixareialgumas peças sem tocar, no caso, o model, a migration e a route. Estarei separando o controller e as views.
+
+Como tenho o objetivo de me fazer entender, estarei simplificando o cídigo sempre que possível.
+
+MVC - model, view, controller, migration e route
+- model - app/Model
+- views - resources/views
+- controller - app/Http/Controllers
+- migration - database/migrations
+- route - routes/web.php
+
+Usarei o gerador de CRUDs para criar o CRUD inicial e irei separando as partes.
+https://github.com/ribafs2/gerador-cruds
+
+Fixos
+
+- app/Models/Product.php
+- database/migrations/2024_08_10_010433_create_products_table.php
+- routes/web.php
+
+Variáveis
+
+- Controller
+- viewa
+
+create (somente form)
+app/Http/Controllers/ProductController.php somente adicionar o método create()
+resources/views/products/create.blade.php
+
+store (sem form)
+app/Http/Controllers/ProductController.php somente adicionar o método store()
+Não tem view, apenas joga no model diretamente do controller
+
+edit (somente form)
+app/Http/Controllers/ProductController.php somente adicionar o método edit()
+resources/views/products/edit.blade.php
+
+update (sem form)
+app/Http/Controllers/ProductController.php somente adicionar o método update()
+Não tem view, apenas joga no model diretamente do controller
+
+destroy (sem form, somente age na view index)
+app/Http/Controllers/ProductController.php somente adicionar o método destroy()
+Não tem view, apenas joga no model diretamente do controller
+
+Dicas
+
+Geralmente se usa mais uma view e ta,bém método, quue é o show
+
+Métodos que não tem uuma view associada: store(), update() e destroy() - Apenas processam e jogam no banco
+Métodos que contam com uma view que os complementa: index(), create() e edit(). 
+
+index - index()
+create - store()
+edit - update()
+
+index - listagem dos registros
+create e edir são formulários

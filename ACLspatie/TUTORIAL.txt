@@ -1,0 +1,1732 @@
+Laravel 11 Spatie User Roles and Permissions
+https://www.allphptricks.com/laravel-11-spatie-user-roles-and-permissions
+
+Aprenderemos como instalar o Laravel 11, o pacote de permissões Spatie Laravel e criar CRUDs para funções/roles, usuários e produtos. Também aprenderemos como atribuir permissões a funções e anexar funções a usuários.
+
+Este tutorial ensinará como usar roles e permissões para proteger rotas no aplicativo Laravel. Proteger rotas é muito essencial em qualquer desenvolvimento de aplicativo.
+
+Isso significa que se um usuário tentar acessar uma rota que não tem permissão ou role, ele receberá a mensagem de erro de permissão.
+
+Por exemplo, criaremos um usuário Super Admin que pode criar roles, usuários e produtos, protegeremos essas rotas do aplicativo do usuário final atribuindo funções/roles a cada usuário.
+
+composer create-project --prefer-dist laravel/laravel laravel-acl
+
+cd laravel-acl
+
+Configurar o .env
+
+composer require laravel/ui
+
+php artisan ui bootstrap --auth
+yes
+
+npm install
+
+npm run build
+
+Altere a URL da rota de redirecionamento em adicionando o seguinte método de logout.
+App\Http\Controllers\Auth\LoginController.php 
+
+use Illuminate\Http\Request;
+
+	protected function logout(Request $request)
+	{
+		$this->guard()->logout();
+		$request->session()->flush();
+		$request->session()->regenerate();
+		return redirect()->route('login');
+	}
+    
+Atribua Role a um novo usuário registrado no arquivo 
+App\Http\Controllers\Auth\RegisterController.php.
+
+Encadeie o assignRole com o método User::create.
+
+->assignRole('User');
+
+composer require spatie/laravel-permission
+
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+
+Vá para bootstrap/app.php e crie um alias de middleware em withMiddleware.
+
+->withMiddleware(function (Middleware $middleware) {
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
+    })
+    
+Adicione o trait HasRoles no seu modelo de usuário app\Models\User.php
+
+use Spatie\Permission\Traits\HasRoles;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable, HasRoles;
+    ...
+    
+Defina um Super Admin e Bootstrap 5 em 
+app\Providers\AppServiceProvider.php no método boot().
+
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Pagination\Paginator;
+
+public function boot(): void
+    {
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('Super Admin') ? true : null;
+        });
+        
+        Paginator::useBootstrapFive();
+    }
+    
+Criar seeders
+
+php artisan make:seeder PermissionSeeder
+php artisan make:seeder RoleSeeder
+php artisan make:seeder DefaultUserSeeder
+
+Atualise-os em database/seeders
+
+PermissionSeeder.php
+
+<?php
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Spatie\Permission\Models\Permission;
+
+class PermissionSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $permissions = [
+            'create-role',
+            'edit-role',
+            'delete-role',
+            'create-user',
+            'edit-user',
+            'delete-user',
+            'view-product',
+            'create-product',
+            'edit-product',
+            'delete-product'
+         ];
+ 
+          // Looping and Inserting Array's Permissions into Permission Table
+         foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+          }
+    }
+}
+
+RoleSeeder.php
+
+<?php
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+
+class RoleSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        Role::create(['name' => 'Super Admin']);
+        $admin = Role::create(['name' => 'Admin']);
+        $productManager = Role::create(['name' => 'Product Manager']);
+        $user = Role::create(['name' => 'User']);
+
+        $admin->givePermissionTo([
+            'create-user',
+            'edit-user',
+            'delete-user',
+            'create-product',
+            'edit-product',
+            'delete-product'
+        ]);
+
+        $productManager->givePermissionTo([
+            'create-product',
+            'edit-product',
+            'delete-product'
+        ]);
+
+        $user->givePermissionTo([
+            'view-product'
+        ]);
+    }
+}
+
+DefaultUserSeeder.php
+
+<?php
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
+class DefaultUserSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // Creating Super Admin User
+        $superAdmin = User::create([
+            'name' => 'Javed Ur Rehman', 
+            'email' => 'javed@allphptricks.com',
+            'password' => Hash::make('javed1234')
+        ]);
+        $superAdmin->assignRole('Super Admin');
+
+        // Creating Admin User
+        $admin = User::create([
+            'name' => 'Syed Ahsan Kamal', 
+            'email' => 'ahsan@allphptricks.com',
+            'password' => Hash::make('ahsan1234')
+        ]);
+        $admin->assignRole('Admin');
+
+        // Creating Product Manager User
+        $productManager = User::create([
+            'name' => 'Abdul Muqeet', 
+            'email' => 'muqeet@allphptricks.com',
+            'password' => Hash::make('muqeet1234')
+        ]);
+        $productManager->assignRole('Product Manager');
+
+        // Creating Application User
+        $user = User::create([
+            'name' => 'Naghman Ali', 
+            'email' => 'naghman@allphptricks.com',
+            'password' => Hash::make('naghman1234')
+        ]);
+        $user->assignRole('User');
+    }
+}
+
+DatabaseSeeder.php
+
+<?php
+namespace Database\Seeders;
+
+use App\Models\User;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            DefaultUserSeeder::class,
+        ]);
+    }
+}
+
+routes/web.php
+
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
+
+Auth::routes();
+
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
+Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+Route::resources([
+    'roles' => RoleController::class,
+    'users' => UserController::class,
+    'products' => ProductController::class,
+]);
+
+
+php artisan make:model Product -mcr --requests
+
+    –m flag is for migration
+    –cr flag is for a resource controller
+    –requests flag for form requests
+    
+create_products_table.php
+
+Adicione ao método Schema::create
+
+			$table->string('name');
+			$table->text('description');
+
+app\Models\Product.php
+
+Adicione
+
+protected $fillable = [
+        'name',
+        'description'
+    ];
+    
+app\Http\Controllers/ProductController.php
+
+<?php
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+
+class ProductController extends Controller
+{
+    /**
+     * Instantiate a new ProductController instance.
+     */
+    public function __construct()
+    {
+       $this->middleware('auth');
+       $this->middleware('permission:view-product|create-product|edit-product|delete-product', ['only' => ['index','show']]);
+       $this->middleware('permission:create-product', ['only' => ['create','store']]);
+       $this->middleware('permission:edit-product', ['only' => ['edit','update']]);
+       $this->middleware('permission:delete-product', ['only' => ['destroy']]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): View
+    {
+        return view('products.index', [
+            'products' => Product::latest()->paginate(3)
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): View
+    {
+        return view('products.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreProductRequest $request): RedirectResponse
+    {
+        Product::create($request->all());
+        return redirect()->route('products.index')
+                ->withSuccess('New product is added successfully.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Product $product): View
+    {
+        return view('products.show', [
+            'product' => $product
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Product $product): View
+    {
+        return view('products.edit', [
+            'product' => $product
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateProductRequest $request, Product $product): RedirectResponse
+    {
+        $product->update($request->all());
+        return redirect()->back()
+                ->withSuccess('Product is updated successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Product $product): RedirectResponse
+    {
+        $product->delete();
+        return redirect()->route('products.index')
+                ->withSuccess('Product is deleted successfully.');
+    }
+}
+
+app\Http\Requests
+
+Criar
+
+StoreProductRequest.php
+
+<?php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreProductRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:250',
+            'description' => 'required|string'
+        ];
+    }
+}
+
+UpdateProductRequest.php
+
+<?php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateProductRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:250',
+            'description' => 'required|string'
+        ];
+    }
+}
+
+Criar
+
+php artisan make:controller RoleController --resource
+php artisan make:controller UserController --resource
+
+app\Http\Controllers
+
+RoleController.php
+
+<?php
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use DB;
+
+class RoleController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:create-role|edit-role|delete-role', ['only' => ['index','show']]);
+        $this->middleware('permission:create-role', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-role', ['only' => ['edit','update']]);
+        $this->middleware('permission:delete-role', ['only' => ['destroy']]);
+    }
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): View
+    {
+        return view('roles.index', [
+            'roles' => Role::with('permissions')->orderBy('id', 'DESC')->paginate(3)
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): View
+    {
+        return view('roles.create', [
+            'permissions' => Permission::get()
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreRoleRequest $request): RedirectResponse
+    {
+        $role = Role::create(['name' => $request->name]);
+
+        $permissions = Permission::whereIn('id', $request->permissions)->get(['name'])->toArray();
+        
+        $role->syncPermissions($permissions);
+
+        return redirect()->route('roles.index')
+                ->withSuccess('New role is added successfully.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(): RedirectResponse
+    {
+        return redirect()->route('roles.index');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Role $role): View
+    {
+        if($role->name=='Super Admin'){
+            abort(403, 'SUPER ADMIN ROLE CAN NOT BE EDITED');
+        }
+
+        $rolePermissions = DB::table("role_has_permissions")->where("role_id",$role->id)
+            ->pluck('permission_id')
+            ->all();
+
+        return view('roles.edit', [
+            'role' => $role,
+            'permissions' => Permission::get(),
+            'rolePermissions' => $rolePermissions
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateRoleRequest $request, Role $role): RedirectResponse
+    {
+        $input = $request->only('name');
+
+        $role->update($input);
+
+        $permissions = Permission::whereIn('id', $request->permissions)->get(['name'])->toArray();
+
+        $role->syncPermissions($permissions);    
+        
+        return redirect()->back()
+                ->withSuccess('Role is updated successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Role $role): RedirectResponse
+    {
+        if($role->name=='Super Admin'){
+            abort(403, 'SUPER ADMIN ROLE CAN NOT BE DELETED');
+        }
+        if(auth()->user()->hasRole($role->name)){
+            abort(403, 'CAN NOT DELETE SELF ASSIGNED ROLE');
+        }
+        $role->delete();
+        return redirect()->route('roles.index')
+                ->withSuccess('Role is deleted successfully.');
+    }
+}
+
+UserController.php
+
+<?php
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
+
+class UserController extends Controller
+{
+    /**
+     * Instantiate a new UserController instance.
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('permission:create-user|edit-user|delete-user', ['only' => ['index','show']]);
+        $this->middleware('permission:create-user', ['only' => ['create','store']]);
+        $this->middleware('permission:edit-user', ['only' => ['edit','update']]);
+        $this->middleware('permission:delete-user', ['only' => ['destroy']]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(): View
+    {
+        return view('users.index', [
+            'users' => User::latest('id')->paginate(3)
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create(): View
+    {
+        return view('users.create', [
+            'roles' => Role::pluck('name')->all()
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreUserRequest $request): RedirectResponse
+    {
+        $input = $request->all();
+        $input['password'] = Hash::make($request->password);
+
+        $user = User::create($input);
+        $user->assignRole($request->roles);
+
+        return redirect()->route('users.index')
+                ->withSuccess('New user is added successfully.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(User $user): RedirectResponse
+    {
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(User $user): View
+    {
+        // Check Only Super Admin can update his own Profile
+        if ($user->hasRole('Super Admin')){
+            if($user->id != auth()->user()->id){
+                abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
+            }
+        }
+
+        return view('users.edit', [
+            'user' => $user,
+            'roles' => Role::pluck('name')->all(),
+            'userRoles' => $user->roles->pluck('name')->all()
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
+    {
+        $input = $request->all();
+ 
+        if(!empty($request->password)){
+            $input['password'] = Hash::make($request->password);
+        }else{
+            $input = $request->except('password');
+        }
+        
+        $user->update($input);
+
+        $user->syncRoles($request->roles);
+
+        return redirect()->back()
+                ->withSuccess('User is updated successfully.');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(User $user): RedirectResponse
+    {
+        // About if user is Super Admin or User ID belongs to Auth User
+        if ($user->hasRole('Super Admin') || $user->id == auth()->user()->id)
+        {
+            abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
+        }
+
+        $user->syncRoles([]);
+        $user->delete();
+        return redirect()->route('users.index')
+                ->withSuccess('User is deleted successfully.');
+    }
+}
+
+Criar
+
+php artisan make:request StoreRoleRequest
+php artisan make:request UpdateRoleRequest
+php artisan make:request StoreUserRequest
+php artisan make:request UpdateUserRequest
+
+app\Http\Requests
+
+StoreRoleRequest.php
+
+<?php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreRoleRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:250|unique:roles,name',
+            'permissions' => 'required',
+        ];
+    }
+}
+
+UpdateRoleRequest.php
+
+<?php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateRoleRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:250|unique:roles,name,'.$this->role->id,
+            'permissions' => 'required',
+        ];
+    }
+}
+
+StoreUserRequest.php
+
+<?php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreUserRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:250',
+            'email' => 'required|string|email:rfc,dns|max:250|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'roles' => 'required'
+        ];
+    }
+}
+
+UpdateUserRequest.php
+
+<?php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateUserRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:250',
+            'email' => 'required|string|email:rfc,dns|max:250|unique:users,email,'.$this->user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'roles' => 'required'
+        ];
+    }
+}
+
+Criar as  views
+
+php artisan make:view roles.index
+php artisan make:view roles.create
+php artisan make:view roles.edit
+php artisan make:view users.index
+php artisan make:view users.create
+php artisan make:view users.edit
+php artisan make:view products.index
+php artisan make:view products.create
+php artisan make:view products.edit
+php artisan make:view products.show
+
+resources\views\roles\
+
+index.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="card">
+    <div class="card-header">Manage Roles</div>
+    <div class="card-body">
+        @can('create-role')
+            <a href="{{ route('roles.create') }}" class="btn btn-success btn-sm my-2"><i class="bi bi-plus-circle"></i> Add New Role</a>
+        @endcan
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                <th scope="col">S#</th>
+                <th scope="col" style="max-width:100px;">Role Name</th>
+                <th scope="col">Permissions</th>
+                <th scope="col" style="width: 250px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($roles as $role)
+                <tr>
+                    <th scope="row">{{ $loop->iteration }}</th>
+                    <td>{{ $role->name }}</td>
+                    <td>
+                        <ul>
+                            @forelse ($role->permissions as $permission)
+                                <li>{{ $permission->name }}</li>
+                            @empty
+                            @endforelse
+                        </ul>
+                    </td>
+                    <td>
+                        <form action="{{ route('roles.destroy', $role->id) }}" method="post">
+                            @csrf
+                            @method('DELETE')
+
+                            @if ($role->name!='Super Admin')
+                                @can('edit-role')
+                                    <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i> Edit</a>   
+                                @endcan
+
+                                @can('delete-role')
+                                    @if ($role->name!=Auth::user()->hasRole($role->name))
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Do you want to delete this role?');"><i class="bi bi-trash"></i> Delete</button>
+                                    @endif
+                                @endcan
+                            @endif
+
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                    <td colspan="3">
+                        <span class="text-danger">
+                            <strong>No Role Found!</strong>
+                        </span>
+                    </td>
+                @endforelse
+            </tbody>
+        </table>
+
+        {{ $roles->links() }}
+
+    </div>
+</div>
+@endsection
+
+create.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="float-start">
+                    Add New Role
+                </div>
+                <div class="float-end">
+                    <a href="{{ route('roles.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('roles.store') }}" method="post">
+                    @csrf
+
+                    <div class="mb-3 row">
+                        <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
+                        <div class="col-md-6">
+                          <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}">
+                            @error('name')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="permissions" class="col-md-4 col-form-label text-md-end text-start">Permissions</label>
+                        <div class="col-md-6">           
+                            <select class="form-select @error('permissions') is-invalid @enderror" multiple aria-label="Permissions" id="permissions" name="permissions[]" style="height: 210px;">
+                                @forelse ($permissions as $permission)
+                                    <option value="{{ $permission->id }}" {{ in_array($permission->id, old('permissions') ?? []) ? 'selected' : '' }}>
+                                        {{ $permission->name }}
+                                    </option>
+                                @empty
+
+                                @endforelse
+                            </select>
+                            @error('permissions')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <input type="submit" class="col-md-3 offset-md-5 btn btn-primary" value="Add Role">
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>    
+</div>
+    
+@endsection
+
+edit.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="float-start">
+                    Edit Role
+                </div>
+                <div class="float-end">
+                    <a href="{{ route('roles.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('roles.update', $role->id) }}" method="post">
+                    @csrf
+                    @method("PUT")
+
+                    <div class="mb-3 row">
+                        <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
+                        <div class="col-md-6">
+                          <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ $role->name }}">
+                            @error('name')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="permissions" class="col-md-4 col-form-label text-md-end text-start">Permissions</label>
+                        <div class="col-md-6">           
+                            <select class="form-select @error('permissions') is-invalid @enderror" multiple aria-label="Permissions" id="permissions" name="permissions[]" style="height: 210px;">
+                                @forelse ($permissions as $permission)
+                                    <option value="{{ $permission->id }}" {{ in_array($permission->id, $rolePermissions ?? []) ? 'selected' : '' }}>
+                                        {{ $permission->name }}
+                                    </option>
+                                @empty
+
+                                @endforelse
+                            </select>
+                            @error('permissions')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <input type="submit" class="col-md-3 offset-md-5 btn btn-primary" value="Update Role">
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>    
+</div>
+    
+@endsection
+
+resources\views\users\
+
+index.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+
+<div class="card">
+    <div class="card-header">Manage Users</div>
+    <div class="card-body">
+        @can('create-user')
+            <a href="{{ route('users.create') }}" class="btn btn-success btn-sm my-2"><i class="bi bi-plus-circle"></i> Add New User</a>
+        @endcan
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                <th scope="col">S#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Roles</th>
+                <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($users as $user)
+                <tr>
+                    <th scope="row">{{ $loop->iteration }}</th>
+                    <td>{{ $user->name }}</td>
+                    <td>{{ $user->email }}</td>
+                    <td>
+                        <ul>
+                            @forelse ($user->getRoleNames() as $role)
+                                <li>{{ $role }}</li>
+                            @empty
+                            @endforelse
+                        </ul>
+                    </td>
+                    <td>
+                        <form action="{{ route('users.destroy', $user->id) }}" method="post">
+                            @csrf
+                            @method('DELETE')
+
+                            @if (in_array('Super Admin', $user->getRoleNames()->toArray() ?? []) )
+                                @if (Auth::user()->hasRole('Super Admin'))
+                                    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i> Edit</a>
+                                @endif
+                            @else
+                                @can('edit-user')
+                                    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i> Edit</a>   
+                                @endcan
+
+                                @can('delete-user')
+                                    @if (Auth::user()->id!=$user->id)
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Do you want to delete this user?');"><i class="bi bi-trash"></i> Delete</button>
+                                    @endif
+                                @endcan
+                            @endif
+
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                    <td colspan="5">
+                        <span class="text-danger">
+                            <strong>No User Found!</strong>
+                        </span>
+                    </td>
+                @endforelse
+            </tbody>
+        </table>
+
+        {{ $users->links() }}
+
+    </div>
+</div>
+    
+@endsection
+
+create.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="float-start">
+                    Add New User
+                </div>
+                <div class="float-end">
+                    <a href="{{ route('users.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('users.store') }}" method="post">
+                    @csrf
+
+                    <div class="mb-3 row">
+                        <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
+                        <div class="col-md-6">
+                          <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}">
+                            @error('name')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="email" class="col-md-4 col-form-label text-md-end text-start">Email Address</label>
+                        <div class="col-md-6">
+                          <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}">
+                            @error('email')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="password" class="col-md-4 col-form-label text-md-end text-start">Password</label>
+                        <div class="col-md-6">
+                          <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password">
+                            @error('password')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="password_confirmation" class="col-md-4 col-form-label text-md-end text-start">Confirm Password</label>
+                        <div class="col-md-6">
+                          <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="roles" class="col-md-4 col-form-label text-md-end text-start">Roles</label>
+                        <div class="col-md-6">           
+                            <select class="form-select @error('roles') is-invalid @enderror" multiple aria-label="Roles" id="roles" name="roles[]">
+                                @forelse ($roles as $role)
+
+                                    @if ($role!='Super Admin')
+                                        <option value="{{ $role }}" {{ in_array($role, old('roles') ?? []) ? 'selected' : '' }}>
+                                        {{ $role }}
+                                        </option>
+                                    @else
+                                        @if (Auth::user()->hasRole('Super Admin'))   
+                                            <option value="{{ $role }}" {{ in_array($role, old('roles') ?? []) ? 'selected' : '' }}>
+                                            {{ $role }}
+                                            </option>
+                                        @endif
+                                    @endif
+
+                                @empty
+
+                                @endforelse
+                            </select>
+                            @error('roles')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <input type="submit" class="col-md-3 offset-md-5 btn btn-primary" value="Add User">
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>    
+@endsection
+
+edit.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="float-start">
+                    Edit User
+                </div>
+                <div class="float-end">
+                    <a href="{{ route('users.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('users.update', $user->id) }}" method="post">
+                    @csrf
+                    @method("PUT")
+
+                    <div class="mb-3 row">
+                        <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
+                        <div class="col-md-6">
+                          <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ $user->name }}">
+                            @error('name')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="email" class="col-md-4 col-form-label text-md-end text-start">Email Address</label>
+                        <div class="col-md-6">
+                          <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ $user->email }}">
+                            @error('email')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="password" class="col-md-4 col-form-label text-md-end text-start">Password</label>
+                        <div class="col-md-6">
+                          <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password">
+                            @error('password')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="password_confirmation" class="col-md-4 col-form-label text-md-end text-start">Confirm Password</label>
+                        <div class="col-md-6">
+                          <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="roles" class="col-md-4 col-form-label text-md-end text-start">Roles</label>
+                        <div class="col-md-6">           
+                            <select class="form-select @error('roles') is-invalid @enderror" multiple aria-label="Roles" id="roles" name="roles[]">
+                                @forelse ($roles as $role)
+
+                                    @if ($role!='Super Admin')
+                                    <option value="{{ $role }}" {{ in_array($role, $userRoles ?? []) ? 'selected' : '' }}>
+                                        {{ $role }}
+                                    </option>
+                                    @else
+                                        @if (Auth::user()->hasRole('Super Admin'))   
+                                        <option value="{{ $role }}" {{ in_array($role, $userRoles ?? []) ? 'selected' : '' }}>
+                                            {{ $role }}
+                                        </option>
+                                        @endif
+                                    @endif
+
+                                @empty
+
+                                @endforelse
+                            </select>
+                            @error('roles')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <input type="submit" class="col-md-3 offset-md-5 btn btn-primary" value="Update User">
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+</div>    
+@endsection
+
+resources\views\products\
+
+index.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="card">
+    <div class="card-header">Product List</div>
+    <div class="card-body">
+        @can('create-product')
+            <a href="{{ route('products.create') }}" class="btn btn-success btn-sm my-2"><i class="bi bi-plus-circle"></i> Add New Product</a>
+        @endcan
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                <th scope="col">S#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Description</th>
+                <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($products as $product)
+                <tr>
+                    <th scope="row">{{ $loop->iteration }}</th>
+                    <td>{{ $product->name }}</td>
+                    <td>{{ $product->description }}</td>
+                    <td>
+                        <form action="{{ route('products.destroy', $product->id) }}" method="post">
+                            @csrf
+                            @method('DELETE')
+
+                            <a href="{{ route('products.show', $product->id) }}" class="btn btn-warning btn-sm"><i class="bi bi-eye"></i> Show</a>
+
+                            @can('edit-product')
+                                <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil-square"></i> Edit</a>
+                            @endcan
+
+                            @can('delete-product')
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Do you want to delete this product?');"><i class="bi bi-trash"></i> Delete</button>
+                            @endcan
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                    <td colspan="4">
+                        <span class="text-danger">
+                            <strong>No Product Found!</strong>
+                        </span>
+                    </td>
+                @endforelse
+            </tbody>
+        </table>
+
+        {{ $products->links() }}
+
+    </div>
+</div>
+@endsection
+
+create.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="float-start">
+                    Add New Product
+                </div>
+                <div class="float-end">
+                    <a href="{{ route('products.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('products.store') }}" method="post">
+                    @csrf
+
+                    <div class="mb-3 row">
+                        <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
+                        <div class="col-md-6">
+                          <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}">
+                            @error('name')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="description" class="col-md-4 col-form-label text-md-end text-start">Description</label>
+                        <div class="col-md-6">
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description">{{ old('description') }}</textarea>
+                            @error('description')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <input type="submit" class="col-md-3 offset-md-5 btn btn-primary" value="Add Product">
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>    
+</div>
+    
+@endsection
+
+edit.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="float-start">
+                    Edit Product
+                </div>
+                <div class="float-end">
+                    <a href="{{ route('products.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('products.update', $product->id) }}" method="post">
+                    @csrf
+                    @method("PUT")
+
+                    <div class="mb-3 row">
+                        <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
+                        <div class="col-md-6">
+                          <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ $product->name }}">
+                            @error('name')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="description" class="col-md-4 col-form-label text-md-end text-start">Description</label>
+                        <div class="col-md-6">
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description">{{ $product->description }}</textarea>
+                            @error('description')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <input type="submit" class="col-md-3 offset-md-5 btn btn-primary" value="Update">
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>    
+</div>
+    
+@endsection
+
+show.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="float-start">
+                    Product Information
+                </div>
+                <div class="float-end">
+                    <a href="{{ route('products.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                </div>
+            </div>
+            <div class="card-body">
+
+                    <div class="row">
+                        <label for="name" class="col-md-4 col-form-label text-md-end text-start"><strong>Name:</strong></label>
+                        <div class="col-md-6" style="line-height: 35px;">
+                            {{ $product->name }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label for="description" class="col-md-4 col-form-label text-md-end text-start"><strong>Description:</strong></label>
+                        <div class="col-md-6" style="line-height: 35px;">
+                            {{ $product->description }}
+                        </div>
+                    </div>
+        
+            </div>
+        </div>
+    </div>    
+</div>
+    
+@endsection
+
+resources\views\layouts
+
+app.blade.php
+
+<!doctype html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>Laravel 11 Spatie User Roles and Permissions - AllPHPTricks.com</title>
+
+    <!-- Fonts -->
+    <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Scripts -->
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="{{ route('home') }}">
+                    AllPHPTricks.com
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- Left Side Of Navbar -->
+                    <ul class="navbar-nav me-auto">
+
+                    </ul>
+
+                    <!-- Right Side Of Navbar -->
+                    <ul class="navbar-nav ms-auto">
+                        <!-- Authentication Links -->
+                        @guest
+                            @if (Route::has('login'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                </li>
+                            @endif
+
+                            @if (Route::has('register'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                </li>
+                            @endif
+                        @else
+                            @canany(['create-role', 'edit-role', 'delete-role'])
+                                <li><a class="nav-link" href="{{ route('roles.index') }}">Manage Roles</a></li>
+                            @endcanany
+                            @canany(['create-user', 'edit-user', 'delete-user'])
+                                <li><a class="nav-link" href="{{ route('users.index') }}">Manage Users</a></li>
+                            @endcanany
+                            @canany(['create-product', 'edit-product', 'delete-product'])
+                                <li><a class="nav-link" href="{{ route('products.index') }}">Manage Products</a></li>
+                            @endcanany
+                            @can(['view-product'])
+                                <li><a class="nav-link" href="{{ route('products.index') }}">View Products</a></li>
+                            @endcan
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }}
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                       onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                        {{ __('Logout') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                </div>
+                            </li>
+                        @endguest
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <main class="py-4">
+            <div class="container">
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-12">
+                        
+                        @if ($message = Session::get('success'))
+                            <div class="alert alert-success text-center" role="alert">
+                                {{ $message }}
+                            </div>
+                        @endif
+
+                        <h3 class="text-center mt-3 mb-3">Laravel 11 Spatie User Roles and Permissions - <a href="https://www.allphptricks.com/">AllPHPTricks.com</a></h3>
+                        @yield('content')
+                        
+                        <div class="row justify-content-center text-center mt-3">
+                            <div class="col-md-12">
+                                <p>Back to Tutorial: 
+                                    <a href="https://www.allphptricks.com/laravel-11-spatie-user-roles-and-permissions/"><strong>Tutorial Link</strong></a>
+                                </p>
+                                <p>
+                                    For More Web Development Tutorials Visit: <a href="https://www.allphptricks.com/"><strong>AllPHPTricks.com</strong></a>
+                                </p>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+
+resources\views\home.blade.php
+
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">{{ __('Dashboard') }}</div>
+
+                <div class="card-body">
+                    @if (session('status'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('status') }}
+                        </div>
+                    @endif
+
+                    {{ __('You are logged in!') }}
+
+                    <p>This is your application dashboard.</p>
+                    @canany(['create-role', 'edit-role', 'delete-role'])
+                        <a class="btn btn-primary" href="{{ route('roles.index') }}">
+                            <i class="bi bi-person-fill-gear"></i> Manage Roles</a>
+                    @endcanany
+                    @canany(['create-user', 'edit-user', 'delete-user'])
+                        <a class="btn btn-success" href="{{ route('users.index') }}">
+                            <i class="bi bi-people"></i> Manage Users</a>
+                    @endcanany
+                    @canany(['create-product', 'edit-product', 'delete-product'])
+                        <a class="btn btn-warning" href="{{ route('products.index') }}">
+                            <i class="bi bi-bag"></i> Manage Products</a>
+                    @endcanany
+                    @can(['view-product'])
+                        <a class="btn btn-warning" href="{{ route('products.index') }}">
+                            <i class="bi bi-bag"></i> View Products</a>
+                    @endcan
+                    <p>&nbsp;</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+php artisan migrate:fresh --seed
+
+php artisan serve
+
+http://127.0.0.1:8000
+
+Testar com
+
+//Super Admin Credentials
+Email: javed@allphptricks.com
+Password: javed1234
+
+//Admin Credentials
+Email: ahsan@allphptricks.com
+Password: ahsan1234
+
+//Product Manager Credentials
+Email: muqeet@allphptricks.com
+Password: muqeet1234
+
+//Application User Credentials
+Email: naghman@allphptricks.com
+Password: naghman1234
+
+https://www.allphptricks.com/laravel-11-spatie-user-roles-and-permissions/
+https://www.allphptricks.com/download/download.php?id=202406RolLar11Per26AppTut
+
+

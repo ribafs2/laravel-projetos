@@ -1,0 +1,11 @@
+
+
+produtos
+
+compras --> estoques <-- vendas
+
+Se compras armazena em estoqus, então compras precisa ter os campos de estoque.
+
+Estoques não serão cadastrados diretamente, mas somente através de compras e alterados através de vendas.
+
+Já vendas muda apenas a quantidade de um produto em estoques, então vendas deve se relacionar não com produtos mas com estoques

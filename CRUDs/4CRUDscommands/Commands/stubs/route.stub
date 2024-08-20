@@ -1,0 +1,9 @@
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\{{controller}};
+
+Route::resource('{{table}}', {{controller}}::class);
+
+Route::get('/', function () {
+    return redirect()->route('{{table}}.index');
+});

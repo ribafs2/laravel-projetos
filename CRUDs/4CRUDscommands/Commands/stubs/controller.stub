@@ -1,0 +1,70 @@
+<?php
+namespace App\Http\Controllers;
+
+use App\Models\{{tableUcSing}};
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
+
+class {{tableUcSing}}Controller extends Controller
+{
+    public function index(): View
+    {
+        ${{table}} = {{tableUcSing}}::latest()->paginate(5);
+        return view('{{table}}.index', compact('{{table}}'))
+            ->with('i', (request()->input('page', 1) - 1) * 5);
+    }
+
+    public function create(): View
+    {
+        return view('{{table}}.create');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+/*        $request->validate([
+            'name' => 'required',
+            'detail' => 'required',
+        ]);
+        Product::create($request->all());
+        // https://laravel-news.com/laravel-validation-101-models-form-requests-and-rules
+*/
+        $requestData = $request->all();            
+        {{tableUcSing}}::create($requestData);
+        return redirect()->route('{{table}}.index')
+            ->with('success', 'Created successfully.');
+    }
+
+    public function show({{tableUcSing}} ${{tableSing}}): View
+    {
+        return view('{{table}}.show', compact('{{tableSing}}'));
+    }
+
+    public function edit({{tableUcSing}} ${{tableSing}}): View
+    {
+        return view('{{table}}.edit', compact('{{tableSing}}'));
+    }
+
+    public function update(Request $request, $id): RedirectResponse
+    {
+/*        $request->validate([
+            'name' => 'required',
+            'detail' => 'required',
+        ]);
+        $product->update($request->all());
+*/
+        $requestData = $request->all();            
+        ${{tableSing}} = {{tableSing}}::findOrFail($id);
+        ${{tableSing}}->update($requestData);
+        return redirect()->route('{{table}}.index')
+            ->with('success', 'Upda successfully');
+    }
+
+    public function destroy({{tableUcSing}} ${{tableSing}}): RedirectResponse
+    {
+        ${{tableSing}}->delete();
+        return redirect()->route('{{table}}.index')
+            ->with('success', 'Deleted successfully');
+    }
+}

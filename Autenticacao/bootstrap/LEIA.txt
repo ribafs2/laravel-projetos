@@ -1,0 +1,99 @@
+Bootstrap is a default package in laravel. Since you have installed it, then just run npm run dev to compile them into public/css/app.css and public/js/app.js then you can link them to your blade files via {{asset('css/app.css')}} and {{asset('js/app.js')}}.
+
+How to Install Bootstrap 5 with Laravel 10 & 11
+Samuel
+Mar 26, 2024
+
+Laravel 11
+
+Bootstrap is a popular front-end framework that provides a collection of CSS and JavaScript components for building responsive and mobile-first web applications. Integrating Bootstrap with Laravel, a powerful PHP web framework, can streamline the development process and enhance the user experience of your web applications. In this article, we’ll guide you through the steps to install and configure Bootstrap 5 with Laravel 9/10/11.
+Prerequisites
+
+Before we begin, ensure that you have the following prerequisites installed on your system:
+
+- Laravel 9/10/11 project set up
+- Node.js and npm (Node Package Manager) installed
+
+Step 1: Install Bootstrap via npm
+
+Open your terminal or command prompt, navigate to the root directory of your Laravel project, and run the following command to install Bootstrap 5:
+
+npm install -D bootstrap@5.3.3
+
+This command installs Bootstrap 5.3.3 as a development dependency for your project.
+
+Step 2: Install Sass
+
+Since we will use Sass for styling, we need to install the Sass compiler. Run the following command:
+
+npm install -D sass
+
+Step 3: Install Dependencies
+
+After installing Bootstrap and Sass, you need to install the project’s remaining dependencies. Run the following command:
+
+npm install
+
+Step 4: Configure Vite
+
+Laravel 9/10/11 uses Vite as the default bundler for compiling assets. We need to configure Vite to include our Sass and JavaScript files.
+
+1. Create a new Sass file named `app.scss` or whatever.scssin the `resources/sass` directory.
+2. Open the `vite.config.js` file in the root directory of your project and update it with the following code:
+
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: [
+                'resources/sass/app.scss', // Our new line you can change app.scss to whatever.scss
+                'resources/js/app.js',
+            ],
+            refresh: true,
+        }),
+    ],
+});
+
+This configuration tells Vite to include the `app.scss` and `app.js` files during the build process.
+
+Step 5: Import Bootstrap
+
+    Open the `resources/js/app.js` file and import Bootstrap by adding the following line to it:
+
+import 'bootstrap';
+
+    Paul Phillips: Not sure if this is specific to Laravel 11 but `resources/js/app.js already had import ‘./bootstrap’; which was initially confusing until I spotted the difference and ended up with:
+
+    import ‘bootstrap’; // Bootstrap Framework
+
+    import ‘./bootstrap’; // Laravel axios
+
+From versions 5.7 to 8.x, the syntax was `require(‘./bootstrap’);`. Starting from version 9.x, the `app.js` file contains that line.
+The file should now look like the one below.
+
+import './bootstrap';
+import 'bootstrap';
+
+2. Open the `resources/sass/app.scss` file and import the Bootstrap Sass files by adding the following line at the top of the file:
+
+@import 'bootstrap/scss/bootstrap';
+
+Step 6: Include Styles and Scripts in Your Layout
+
+In your main layout file (e.g., `app.blade.php`), add the following line just before the closing `</head>` tag to include the compiled CSS and JavaScript files:
+
+@vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+Step 7: Compile Assets
+
+Finally, run the following commands to compile your assets:
+
+npm run dev
+
+This command will compile your Sass and JavaScript files, including the Bootstrap assets.
+
+Congratulations! You have successfully installed and configured Bootstrap 5 with Laravel 9/10/11. You can now start using Bootstrap components and utilities in your Laravel application.
+https://medium.com/@skpassegna/how-to-install-bootstrap-5-with-laravel-10-11-2fcc8c4f1453
+

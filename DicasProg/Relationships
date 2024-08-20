@@ -1,0 +1,66 @@
+    public function up(): void
+    {
+        Schema::create('categories', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name')->notNullable();
+            $table->timestamps();            
+        });
+    }
+    
+    public function up(): void
+    {
+        Schema::create('contents', function (Blueprint $table) {
+            $table->increments('id');
+            $table->foreignId('category_id')->constrained('posts')->onDelete('cascade')->onUpdate('cascade');
+            $table->string('title')->notNullable();            
+            $table->text('comment')->notNullable();
+            $table->date('date')->nullable();            
+            $table->timestamps();            
+        });
+    }
+
+Models
+
+app/Models/Post.php
+<?php
+  
+namespace App\Models;
+  
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+  
+class Category extends Model
+{
+    use HasFactory;
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+}
+app/Models/Comment.php
+<?php
+  
+namespace App\Models;
+  
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+  
+class Comment extends Model
+{
+    use HasFactory;
+  
+    /**
+     * Get the post that owns the comment.
+     *  
+     * Syntax: return $this->belongsTo(Post::class, 'foreign_key', 'owner_key');
+     *
+     * Example: return $this->belongsTo(Post::class, 'post_id', 'id');
+     * 
+     */
+    public function post(): BelongsTo
+    {
+        return $this->belongsTo(Post::class);
+    }
+}

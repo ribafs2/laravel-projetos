@@ -1,0 +1,31 @@
+CREATE TABLE `produtos` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`status` CHAR(1) NOT NULL DEFAULT 'A',
+`descricao` VARCHAR(50) NULL DEFAULT NULL,
+`estoque_minimo` INT(11) NULL DEFAULT NULL,
+`estoque_maximo` INT(11) NULL DEFAULT NULL,
+PRIMARY KEY (`id`));
+
+CREATE TABLE `compras` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`id_produto` INT(11) NULL DEFAULT NULL,
+`qtde` INT(11) NULL DEFAULT NULL,
+`valor_unitario` DECIMAL(9,2) NULL DEFAULT '0.00',
+`data_entrada` DATE NULL DEFAULT NULL,
+PRIMARY KEY (`id`));
+
+CREATE TABLE `estoque` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`id_produto` INT(11) NULL DEFAULT NULL,
+`qtde` INT(11) NULL DEFAULT NULL,
+`valor_unitario` DECIMAL(9,2) NULL DEFAULT '0.00',
+PRIMARY KEY (`id`));
+
+CREATE TABLE `vendas` (
+`id` INT(11) NOT NULL AUTO_INCREMENT,
+`id_produto` INT(11) NULL DEFAULT NULL,
+`qtde` INT(11) NULL DEFAULT NULL,
+`data_saida` DATE NULL DEFAULT NULL,
+`valor_unitario` DECIMAL(9,2) NULL DEFAULT '0.00',
+PRIMARY KEY (`id`));
+
