@@ -17,7 +17,7 @@ Alguns precisa indicar /login, /products, ou outro
 Verifique o arquivo de rotas se em dúvida
 
 ## Veja o índice do livro
-
+```sh
 1 - Dicas	17
 1.1 - Sobre as versões do laravel	17
 1.2 - Abrir certa view por padrão ao executar artisan serve	17
@@ -71,3 +71,4 @@ Verifique o arquivo de rotas se em dúvida
 3.13 – Rotas no Laravel 11	144
 
 4 – Referências
+```
