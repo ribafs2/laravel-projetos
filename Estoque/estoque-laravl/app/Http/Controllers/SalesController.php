@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Sale;
 use App\Models\Product; // Para o create()
 use App\Models\Inventory; // Para o store()
-use Illuminate\Support\Facades\DB;
+//use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
 {
@@ -57,16 +57,15 @@ class SalesController extends Controller
         $requestData = $request->all();
 
 		// Abater a venda nos inventories/estoques
-        $inventories = new Inventory;
-        foreach($inventories->all() as $inventory){
-			if($inventory->product_id == $request->product_id){
-				$inventory->quantity = $inventory->quantity - $request->quantity;
-		    	$inventory->save();
-		    }
+        $inventories = Inventory::all();
+        foreach($inventories as $inventory){
+        	if($inventory->product_id == $request->product_id){
+        		$inventory->quantity = $inventory->quantity - $request->quantity;
+        		$inventory->save();
+        	}
         }
-        
+     
         Sale::create($requestData);
-
         return redirect('sales')->with('flash_message', 'Sale added!');
     }
 
