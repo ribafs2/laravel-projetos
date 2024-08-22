@@ -8,6 +8,7 @@
             <div class="col-md-9">
                 <div class="card">
                     <div class="card-header">Estoque</div>
+	                    <div class="col-md-12">
                         <form method="GET" action="{{ url('/inventories') }}" accept-charset="UTF-8" class="form-inline my-2 my-lg-0 float-right" role="search">
                             <div class="input-group">
                                 <input type="text" class="form-control" name="search" placeholder="Search..." value="{{ request('search') }}">
@@ -18,7 +19,7 @@
                                 </span>
                             </div>
                         </form>
-
+					</div>
                         <br/>
                         <br/>
                         <div class="table-responsive">

@@ -6,6 +6,7 @@ use App\Models\Buy;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Inventory;
+use Illuminate\Support\Facades\DB;
 
 class BuysController extends Controller
 {
@@ -35,8 +36,29 @@ class BuysController extends Controller
 
     public function store(Request $request)
     {        
-        $requestData = $request->all();        
-        Inventory::create($requestData);
+        $requestData = $request->all();
+        
+		// Somar a compra nos inventories/estoques
+		$inventories = new Inventory;
+		$count = $inventories->count();
+
+		if($count == 0){
+			DB::table('inventories')->insert([
+				'product_id' => $request->product_id,
+				'quantity' => $request->quantity
+			]);
+		}
+
+        $inventories = new Inventory;
+        foreach($inventories::all() as $inventory){
+	 		if($count >= 1){
+	 			$inventory->product_id = $request->product_id;
+	 			$inventory->quantity = $inventory->quantity + $request->quantity;
+				$inventory->save();		
+			}
+		}
+
+        //Inventory::create($requestData);
         Buy::create($requestData);
 
         return redirect('buys')->with('flash_message', 'Buy added!');
