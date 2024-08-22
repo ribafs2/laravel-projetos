@@ -84,6 +84,13 @@ Verifique o arquivo de rotas se em dúvida
 
 4 – Referências
 ```
+## Testes
+
+Todos os projetos foram testados e estão funcionando no ambiente:
+
+- Debian 12
+- Apache2, MariaDb, PHP 8.2 e cia
+
 ## Scripts
 Na pasta Scripts encontrará vários aliases e scripts que uso para tornar minhas atividades mais produtivas
 
