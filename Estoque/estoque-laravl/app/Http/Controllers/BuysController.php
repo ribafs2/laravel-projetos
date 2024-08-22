@@ -42,6 +42,7 @@ class BuysController extends Controller
 		$inventories = new Inventory;
 		$count = $inventories->count();
 
+        // Para que consiga cadastrar as vendas no inventories, preciso inserir o registro atual, caso count=0
 		if($count == 0){
 			DB::table('inventories')->insert([
 				'product_id' => $request->product_id,
