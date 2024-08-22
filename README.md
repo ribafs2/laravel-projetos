@@ -42,7 +42,6 @@ Verifique o arquivo de rotas se em dúvida
 1.13 - Limpara cache do laravel	22
 
 2 – Projetos com Laravel 11	23
-2.1 - Controle de estoque simplificado	23
 2.2 - Diário com bons recursos	31
 2.3 - ACL com Spatie	32
 2.4 – Autenticação	33
