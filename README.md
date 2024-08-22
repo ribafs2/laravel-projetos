@@ -8,6 +8,11 @@ Pra começar é o assunto que mais tenho estudado nos últimos tempos. O laravel
 
 Só para dar uma ideia da sua versatilidade aqui, entre os projetos citados, está um que criei há uns 15 dias para servir de diário para mim. Ele substituiu um que usei por uns 5 anos feito no LibreOffice Writer. Tem mais vários aplicativos úteis, boa parte criada por mim, mas não somente.
 
+## Controle de estoque
+Removi o controle de estoque simplificado deste repositório papra um exclusivo
+
+https://github.com/ribafs2/laravel-estoque
+
 ## Para executar cada projeto, após o download execute:
 
 composer install
